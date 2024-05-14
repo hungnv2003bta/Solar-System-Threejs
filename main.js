@@ -9,7 +9,7 @@ function setCamera(camera) {
 
 function getDirectionalLights(intensity) {
     for (var i = 0; i < 4; i++) {
-        var light = new THREE.DirectionalLight({color: 0xffffff, intensity});
+        var light = new THREE.DirectionalLight({color: 0x010201, intensity});
         switch (i) {
             case 0:
                 light.position.set(0, 0, 1000);
@@ -31,13 +31,13 @@ var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHei
 setCamera(camera);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-var textureLoader = new THREE.TextureLoader();
 
 document.body.appendChild(renderer.domElement);
 
-function createPlanet(radius, texture, distance, speed, rotation, cloud = false, ring = false)  {
+function createPlanet(radius, src, distance, speed, rotation, cloud = false, ring = false)  {
+    var texture = getTexture(src);
     var geometry = new THREE.SphereGeometry(radius, 32, 32);
-    var material = new THREE.MeshBasicMaterial({
+    var material = new THREE.MeshPhongMaterial({
 
     });
     var planet = new THREE.Mesh(geometry, material);
@@ -47,24 +47,29 @@ function createPlanet(radius, texture, distance, speed, rotation, cloud = false,
 }
 
 function getTexture(src) { 
-    var texture = textureLoader.load('/textures/sun_detailed.png');
+    var textureLoader = new THREE.TextureLoader();
+    var texture = textureLoader.load(src);
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    return texture;
 }
 
 function createSun() {
-    var texture = textureLoader.load('/textures/sun_detailed.png');
-    texture.wrapS = THREE.ClampToEdgeWrapping;
-    texture.wrapT = THREE.ClampToEdgeWrapping;
+    var texture = getTexture('/textures/sun_detailed.png');
+    texture.minFilter = THREE.NearestFilter;
 
     var geometry = new THREE.SphereGeometry(20, 84, 42);
-    var material = new THREE.MeshPhongMaterial({
+
+    var material = new THREE.MeshBasicMaterial({
         map: texture,
-        lightMap: texture,
-        transparent: true,
-        opacity: 0.85, // 0.8
+        mapLight: texture,
         flatShading: false
     });
-    var sunLight = new THREE.PointLight(0xffffff, 10, 10000, 0.6);
+    
     var sun = new THREE.Mesh(geometry, material);
+
+    var sunLight = new THREE.PointLight(0xffffff, 2.0, 1000000, 0.6);
+
     sun.add(sunLight);
     return sun;
 }
@@ -87,5 +92,6 @@ scene.add(sun);
 scene.add(controls);
 var intensity = 2.0;
 //getDirectionalLights(intensity);
+
 
 update(renderer, scene, camera, controls);
