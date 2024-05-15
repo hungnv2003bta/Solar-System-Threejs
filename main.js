@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OrbitControls } from '/controls/OrbitControls.js';
 
 function setCamera(camera) {
     camera.position.set(0, 0, 300);
