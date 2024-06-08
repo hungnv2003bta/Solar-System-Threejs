@@ -7,19 +7,19 @@ function setCamera(camera) {
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 }
 
-function getDirectionalLights(intensity) {
+function getDirectionalLights() {
     for (var i = 0; i < 4; i++) {
-        var light = new THREE.DirectionalLight({ color: 0x010201, intensity });
+        var light = new THREE.DirectionalLight(0xffffff, 0.03);
         switch (i) {
             case 0:
-                light.position.set(0, 0, 1000);
+                light.position.set(0, 0, 10000);
                 break;
             case 1:
-                light.position.set(0, 0, -1000);
+                light.position.set(0, 0, -10000);
             case 2:
-                light.position.set(1000, 0, 0);
+                light.position.set(10000, 0, 0);
             case 3:
-                light.position.set(-1000, 0, 0);
+                light.position.set(-10000, 0, 0);
         }
         scene.add(light);
     }
@@ -42,7 +42,7 @@ function getTexture(src) {
 }
 
 function createSun(intensity) {
-    var texture = getTexture('/textures/sun_detailed.png');
+    var texture = getTexture('/textures/sun.jpg');
     texture.wrapS = THREE.ClampToEdgeWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
     texture.minFilter = THREE.NearestFilter;
@@ -101,12 +101,29 @@ function createPlanet(radius, src_base, src_topo, distanceFromParent, cloud = nu
         var atmosphere = createAtmosphere(radius, cloud);
         planet.add(atmosphere);
     }
-    planet.distanceFromParent = distanceFromParent;
-    planet.position.set(Math.cos(2.5) * planet.distanceFromParent, 0, Math.sin(2.5) * planet.distanceFromParent);
+    //planet.distanceFromParent = distanceFromParent;
+    planet.position.set(0, 0, distanceFromParent);
     return planet;
 }
 
+function createOrbit(distanceFromParent, color) {
+    const orbitGeometry = new THREE.BufferGeometry();
+    const orbitMaterial = new THREE.LineBasicMaterial({ color: color });
+    const points = [];
+    var resolution = distanceFromParent + 15 * 50;
+    var length = 360 / resolution;
+    for (let i = 0; i <= resolution; i++) {
+        var segment = (i * length) * Math.PI / 180;
+        points.push(new THREE.Vector3(Math.cos(segment) * distanceFromParent, 0, Math.sin(segment) * distanceFromParent));
+    }
+    orbitGeometry.setFromPoints(points);
+    return new THREE.Line(orbitGeometry, orbitMaterial);
+}
+
 function update(renderer, scene, camera, controls) {
+    sun.rotation.x = 0.1;
+    orbitEarth.rotation.y += 0.01;
+    earth.rotation.y += 0.1;
     renderer.render(scene, camera);
     controls.update();
     requestAnimationFrame(function () {
@@ -114,18 +131,20 @@ function update(renderer, scene, camera, controls) {
     })
 }
 
-
 var controls = new OrbitControls(camera, renderer.domElement);
 var intensity = 4.0;
 
-var earth = createPlanet(2, "textures/earth_10k.jpg", "textures/earth_topo_4k.jpg", 60, "textures/earth_clouds_active2.png");
 var sun = createSun(intensity);
+var earth = createPlanet(2, "textures/earth.jpg", "textures/earth_topo.jpg", 60, "textures/earth_clouds.png");
+var orbitEarth = createOrbit(60, 0xffff00);
+orbitEarth.add(earth);
+sun.add(orbitEarth);
+
 
 scene.add(sun);
-scene.add(earth);
-scene.add(controls);
 
-getDirectionalLights(intensity);
+getDirectionalLights();
 
 
 update(renderer, scene, camera, controls);
+
