@@ -7,31 +7,33 @@ function setCamera(camera) {
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 }
 
-function getDirectionalLights() {
-    for (var i = 0; i < 4; i++) {
-        var light = new THREE.DirectionalLight(0xffffff, 0.03);
-        switch (i) {
-            case 0:
-                light.position.set(0, 0, 10000);
-                break;
-            case 1:
-                light.position.set(0, 0, -10000);
-            case 2:
-                light.position.set(10000, 0, 0);
-            case 3:
-                light.position.set(-10000, 0, 0);
-        }
-        scene.add(light);
-    }
-}
-
 var scene = new THREE.Scene();
+const texture = new THREE.TextureLoader().load( "textures/planetgalaxybackround.jpg" );
+scene.background = texture; 
 var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5 * Math.pow(10, 8));
 setCamera(camera);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 document.body.appendChild(renderer.domElement);
+
+function getDirectionalLights() {
+    for (var i = 0; i < 4; i++) {
+        var light = new THREE.DirectionalLight(0xffffff, 0.02);
+        switch (i) {
+            case 0:
+                light.position.set(0, 0, 1000);
+                break;
+            case 1:
+                light.position.set(0, 0, -1000);
+            case 2:
+                light.position.set(1000, 0, 0);
+            case 3:
+                light.position.set(-1000, 0, 0);
+        }
+        scene.add(light);
+    }
+}
 
 function getTexture(src) {
     var textureLoader = new THREE.TextureLoader();
@@ -56,6 +58,7 @@ function createSun(intensity) {
     var sun = new THREE.Mesh(geometry, material);
 
     var sunLight = new THREE.PointLight(0xffffff, intensity, 100000, 0.05);
+    //sunLight.castShadow = true;
 
     sun.add(sunLight);
     return sun;
@@ -174,15 +177,14 @@ function animation(orbit, planet, orbitSpeed, rotateSpeed) {
 
 function update(renderer, scene, camera, controls) {
     //animation here
-    sun.rotation.y = 0.01 * speed;
-    animation(orbitMercury, mercury, 0.001, 0.1);
-    animation(orbitVenus, venus, 0.001, 0.1);
+    animation(orbitMercury, mercury, 0.001 * 47.89/29.79, 0.1 * 365/88);
+    animation(orbitVenus, venus, 0.001 * 35.04/29.79, 0.1 * 365/220);
     animation(orbitEarth, earth, 0.001, 0.1);
-    animation(orbitMars, mars, 0.001, 0.1);
-    animation(orbitJupiter, jupiter, 0.001, 0.1);
-    animation(orbitSaturn, saturn, 0.001, 0.1);
-    animation(orbitUranus, uranus, 0.001, 0.1)
-    animation(orbitNeptune, neptune, 0.001, 0.1);
+    animation(orbitMars, mars, 0.001 * 24.14/29.79, 0.1 * 1/2);
+    animation(orbitJupiter, jupiter, 0.001 * 13.06/29.79, 0.1 * 1/12);
+    animation(orbitSaturn, saturn, 0.001 * 9.64/29.79, 0.1 * 1/30);
+    animation(orbitUranus, uranus, 0.001 * 6.81/29.79, 0.1 * 1/84)
+    animation(orbitNeptune, neptune, 0.001 * 5.43/29.79, 0.1 * 1/160);
 
     //-----------------------------------------    
     renderer.render(scene, camera);
@@ -191,6 +193,7 @@ function update(renderer, scene, camera, controls) {
         update(renderer, scene, camera, controls);
     })
 }
+
 
 var sun = createSun(intensity);
 
@@ -249,8 +252,4 @@ scene.add(sun);
 
 getDirectionalLights();
 
-const texture = new THREE.TextureLoader().load( "textures/planetgalaxybackround.jpg" );
-scene.background = texture ; 
-
 update(renderer, scene, camera, controls);
-
