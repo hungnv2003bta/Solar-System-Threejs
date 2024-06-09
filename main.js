@@ -65,7 +65,7 @@ function createAtmosphere(radius, src) {
     var map = getTexture(src);
     map.minFilter = THREE.LinearFilter;
     var mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(radius * 1.01, 32, 32),
+        new THREE.SphereGeometry(radius * 1.02, 32, 32),
         new THREE.MeshPhongMaterial({
             map: map,
             transparent: true,
@@ -87,7 +87,7 @@ function createSurface(radius, src_base, src_topo) {
         new THREE.MeshPhongMaterial({
             map: map,
             bumpMap: bumpMap || null,
-            bumpScale: bumpMap ? 0.15 : null,
+            bumpScale: bumpMap ? 0.75 : null,
         })
     );
     return mesh;
@@ -101,7 +101,6 @@ function createPlanet(radius, src_base, src_topo, distanceFromParent, cloud = nu
         var atmosphere = createAtmosphere(radius, cloud);
         planet.add(atmosphere);
     }
-    //planet.distanceFromParent = distanceFromParent;
     planet.position.set(0, 0, distanceFromParent);
     return planet;
 }
@@ -120,10 +119,26 @@ function createOrbit(distanceFromParent, color) {
     return new THREE.Line(orbitGeometry, orbitMaterial);
 }
 
+
+var controls = new OrbitControls(camera, renderer.domElement);
+
+// Ensure the renderer and camera aspect ratio is updated on window resize
+window.addEventListener('resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}, false);
+
+var speed = 1;
+var intensity = 1.5;
+
 function update(renderer, scene, camera, controls) {
-    sun.rotation.x = 0.1;
-    orbitEarth.rotation.y += 0.01;
-    earth.rotation.y += 0.1;
+    //animation here
+    sun.rotation.x = 0.01 * speed;
+    //orbitEarth.rotation.y += 0.01 * speed;
+    earth.rotation.y += 0.01 * speed;
+
+    //-----------------------------------------    
     renderer.render(scene, camera);
     controls.update();
     requestAnimationFrame(function () {
@@ -131,14 +146,35 @@ function update(renderer, scene, camera, controls) {
     })
 }
 
-var controls = new OrbitControls(camera, renderer.domElement);
-var intensity = 4.0;
-
 var sun = createSun(intensity);
+
+//mercury
+var mercury = createPlanet(0.75, "textures/mercury.jpg", "textures/mecury_topo.jpg", 35);
+var orbitMercury = createOrbit(35, 0xffff00);
+orbitMercury.add(mercury);
+
+//venus
+var venus = createPlanet(1.9, "textures/venus.jpg", "textures/venus_topo.jpg", 44);
+var orbitVenus = createOrbit(44, 0xffff00);
+orbitVenus.add(venus);
+
+//earth
 var earth = createPlanet(2, "textures/earth.jpg", "textures/earth_topo.jpg", 60, "textures/earth_clouds.png");
 var orbitEarth = createOrbit(60, 0xffff00);
 orbitEarth.add(earth);
+
+//mars
+var mars = createPlanet(1.1, "textures/mars.jpg", "textures/mars_topo.jpg", 90);
+var orbitMars = createOrbit(90, 0xffff00);
+orbitMars.add(mars);
+
+//jupiter
+
+
+sun.add(orbitMercury);
+sun.add(orbitVenus);
 sun.add(orbitEarth);
+sun.add(orbitMars);
 
 
 scene.add(sun);
