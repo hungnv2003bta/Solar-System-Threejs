@@ -2,6 +2,8 @@ import * as THREE from 'three';
 
 import { OrbitControls } from '/controls/OrbitControls.js';
 
+// SOLAR SYSTEM DATAS
+
 const SUN = {
     name: 'Sun',
     radius: 696340,  // km
@@ -96,6 +98,18 @@ const PLANETS = [
     }
 ];
 
+const MOON = {
+        name: 'Moon',
+        radius: 1737.4,  // km
+        distance: 0.384,  // million km from Earth
+        orbitDuration: 27.3,  // Earth days
+        rotationDuration: 655.7,  // hours (27.3 Earth days)
+        orbitInclination: 5.145,  // degrees to the plane of Earth's orbit
+        axialTilt: 1.54,  // degrees
+        surfaceTemperature: -180,  // Celsius
+        num_satellites: 0
+};
+
 function setCamera(camera) {
     camera.position.set(0, 0, 300);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -104,6 +118,7 @@ function setCamera(camera) {
 var scene = new THREE.Scene();
 const texture = new THREE.TextureLoader().load("textures/planetgalaxybackround.jpg");
 scene.background = texture;
+
 var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5 * Math.pow(10, 8));
 setCamera(camera);
 var renderer = new THREE.WebGLRenderer();
@@ -156,8 +171,8 @@ function createSun() {
     var material = new THREE.MeshBasicMaterial({
         map: texture
     });
-
     var sun = new THREE.Mesh(geometry, material);
+    sun.position.set(0, 0, 0);
     return sun;
 }
 
@@ -187,7 +202,7 @@ function createSurface(radius, src_base, src_topo) {
         new THREE.MeshPhongMaterial({
             map: map,
             bumpMap: bumpMap || null,
-            bumpScale: bumpMap ? 0.75 : null,
+            bumpScale: bumpMap ? 0.5 : null,
         })
     );
     return mesh;
@@ -286,16 +301,13 @@ function focusOnPlanet(planet) {
     const planetData = planet.userData;
     const offset = planet.radius * 2;
 
-    // Calculate the new position by adding the planet's position and offset
     const newPos = new THREE.Vector3().copy(planet.position).add(new THREE.Vector3(offset, offset, offset));
 
-    // Animate the camera to the new position
     new TWEEN.Tween(camera.position)
         .to(newPos, 2000)
         .easing(TWEEN.Easing.Quadratic.Out)
         .start();
 
-    // Animate the OrbitControls target to the planet's position
     new TWEEN.Tween(controls.target)
         .to(planet.position, 2000)
         .easing(TWEEN.Easing.Quadratic.Out)
@@ -325,36 +337,37 @@ var intensity = 1.5;
 var speed = 1;
 var sunLight;
 
-function animation(orbit, planet, orbitSpeed, rotateSpeed) {
-    const adjustedOrbitSpeed = orbitSpeed * speed;
-    const adjustedRotateSpeed = rotateSpeed * speed;
+// Update animations
+
+function animation(orbit, planet) {
+    const adjustedOrbitSpeed = 0.001 * (365.25 / planet.userData.orbitDuration) * speed;
+    const adjustedRotateSpeed = 0.1 * (24 / planet.userData.rotationDuration) * speed;
 
     orbit.rotation.y += adjustedOrbitSpeed;
     planet.rotation.y += adjustedRotateSpeed;
 }
 
 function update(renderer, scene, camera, controls) {
-    // Cập nhật giá trị thanh trượt độ sáng
+
     intensityControl.value = intensity.toFixed(1);
 
-    // Cập nhật giá trị thanh trượt tốc độ
     speedControl.value = speed.toFixed(1);
 
-    // Cập nhật giá trị hiển thị độ sáng
     intensityValue.textContent = intensity.toFixed(1);
 
-    // Cập nhật giá trị hiển thị tốc độ
     speedValue.textContent = speed.toFixed(1);
 
     //animation here
-    animation(orbitMercury, mercury, 0.001 * 47.89 / 29.79 * speed, 0.1 * 365 / 88 * speed);
-    animation(orbitVenus, venus, 0.001 * 35.04 / 29.79 * speed, 0.1 * 365 / 220 * speed);
-    animation(orbitEarth, earth, 0.001 * speed, 0.1 * speed);
-    animation(orbitMars, mars, 0.001 * 24.14 / 29.79 * speed, 0.1 * 1 / 2 * speed);
-    animation(orbitJupiter, jupiter, 0.001 * 13.06 / 29.79 * speed, 0.1 * 1 / 12 * speed);
-    animation(orbitSaturn, saturn, 0.001 * 9.64 / 29.79 * speed, 0.1 * 1 / 30 * speed);
-    animation(orbitUranus, uranus, 0.001 * 6.81 / 29.79 * speed, 0.1 * 1 / 84 * speed)
-    animation(orbitNeptune, neptune, 0.001 * 5.43 / 29.79 * speed, 0.1 * 1 / 160 * speed);
+    sun.rotation.y += 0.1 * (24 / sun.userData.rotationDuration) * speed;
+    animation(orbitMercury, mercury);
+    animation(orbitVenus, venus);
+    animation(orbitEarth, earth);
+    animation(orbitMoon, moon);
+    animation(orbitMars, mars);
+    animation(orbitJupiter, jupiter);
+    animation(orbitSaturn, saturn);
+    animation(orbitUranus, uranus)
+    animation(orbitNeptune, neptune);
  
     renderer.render(scene, camera);
     controls.update();
@@ -365,81 +378,75 @@ function update(renderer, scene, camera, controls) {
     })
 }
 
-// Tạo thanh trượt và thêm sự kiện lắng nghe
+// create Speed Controller
 const speedControl = document.createElement('input');
 speedControl.type = 'range';
 speedControl.min = '0.1';
 speedControl.max = '3';
 speedControl.step = '0.1';
-speedControl.value = '1'; // Thiết lập giá trị mặc định
+speedControl.value = '1'; 
 speedControl.addEventListener('input', function () {
-    speed = parseFloat(this.value); // Cập nhật tốc độ từ giá trị của thanh trượt
+    speed = parseFloat(this.value); 
 });
 
-// Tạo một phần tử để hiển thị giá trị tốc độ
 const speedValue = document.createElement('span');
 speedValue.textContent = speed.toFixed(1);
 
-// Thêm thanh trượt và phần tử hiển thị vào thanh điều khiển tốc độ
 const speedControlPanel = document.createElement('div');
 speedControlPanel.id = 'speedControlPanel';
 speedControlPanel.appendChild(document.createTextNode('Tốc độ mô phỏng: '));
 speedControlPanel.appendChild(speedControl);
 speedControlPanel.appendChild(speedValue);
 
-// Thêm thanh điều khiển vào body của trang web
 document.body.appendChild(speedControlPanel);
 
-// Thêm CSS cho speedControlPanel
-speedControlPanel.style.color = 'white'; // Thay đổi màu chữ
-speedControlPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'; // Thay đổi màu nền
-speedControlPanel.style.padding = '10px'; // Thay đổi padding
-speedControlPanel.style.borderRadius = '5px'; // Thay đổi đường cong viền
-speedControlPanel.style.fontSize = '16px'; // Thay đổi cỡ chữ
-speedControlPanel.style.position = 'fixed'; // Thiết lập vị trí tuyệt đối
-speedControlPanel.style.bottom = '20px'; // Vị trí từ phía dưới
-speedControlPanel.style.left = '20px'; // Vị trí từ phía trái
+speedControlPanel.style.color = 'white'; 
+speedControlPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'; 
+speedControlPanel.style.padding = '10px'; 
+speedControlPanel.style.borderRadius = '5px'; 
+speedControlPanel.style.fontSize = '16px';
+speedControlPanel.style.position = 'fixed'; 
+speedControlPanel.style.bottom = '20px'; 
+speedControlPanel.style.left = '20px';
 
-// Tạo thanh trượt và thêm sự kiện lắng nghe
+// Create Sensity Controller
 const intensityControl = document.createElement('input');
 intensityControl.type = 'range';
 intensityControl.min = '0';
 intensityControl.max = '5';
 intensityControl.step = '0.1';
-intensityControl.value = '1.5'; // Thiết lập giá trị mặc định
+intensityControl.value = '1.5'; 
 intensityControl.addEventListener('input', function () {
-    intensity = parseFloat(this.value); // Cập nhật intensity từ giá trị của thanh trượt
-    // Cập nhật intensity cho ánh sáng của mặt trời
+    intensity = parseFloat(this.value); 
     sunLight.intensity = intensity;
 });
 
-// Tạo một phần tử để hiển thị giá trị intensity
 const intensityValue = document.createElement('span');
 intensityValue.textContent = intensity.toFixed(1);
 
-// Thêm thanh trượt và phần tử hiển thị vào thanh điều khiển intensity
 const intensityControlPanel = document.createElement('div');
 intensityControlPanel.id = 'intensityControlPanel';
 intensityControlPanel.appendChild(document.createTextNode('Độ sáng: '));
 intensityControlPanel.appendChild(intensityControl);
 intensityControlPanel.appendChild(intensityValue);
 
-// Thêm thanh điều khiển vào body của trang web
 document.body.appendChild(intensityControlPanel);
 
-// Thêm CSS cho intensityControlPanel
-intensityControlPanel.style.color = 'white'; // Thay đổi màu chữ
-intensityControlPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'; // Thay đổi màu nền
-intensityControlPanel.style.padding = '10px'; // Thay đổi padding
-intensityControlPanel.style.borderRadius = '5px'; // Thay đổi đường cong viền
-intensityControlPanel.style.fontSize = '16px'; // Thay đổi cỡ chữ
-intensityControlPanel.style.position = 'fixed'; // Thiết lập vị trí tuyệt đối
-intensityControlPanel.style.bottom = '80px'; // Vị trí từ phía dưới
-intensityControlPanel.style.left = '20px'; // Vị trí từ phía trái
+intensityControlPanel.style.color = 'white';
+intensityControlPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+intensityControlPanel.style.padding = '10px'; 
+intensityControlPanel.style.borderRadius = '5px'; 
+intensityControlPanel.style.fontSize = '16px'; 
+intensityControlPanel.style.position = 'fixed'; 
+intensityControlPanel.style.bottom = '80px'; 
+intensityControlPanel.style.left = '20px';
 
+//Create Solar System
+
+//sun
 sunLight = new THREE.PointLight(0xffffff, intensity, 100000, 0.05);
+sunLight.castShadow = true;
 var sun = createSun();
-sun.position.set(0, 0, 0);
 sun.userData = SUN;
 sun.add(sunLight);
 
@@ -459,10 +466,23 @@ orbitVenus.add(venus);
 venus.userData = PLANETS[1];
 planets.push(venus);
 
-//earth
+//earth and moon
+var earth_object = new THREE.Object3D();
 var earth = createPlanet(2, "textures/earth.jpg", "textures/earth_topo.jpg", 60, 23.5, "textures/earth_clouds.png");
+earth.receiveShadow = true;
 var orbitEarth = createOrbit(60, 0xffff00, 0);
-orbitEarth.add(earth);
+earth_object.add(earth);
+
+var moon = createPlanet(0.5, "textures/moon.jpg", "textures/moon_topo.jpg", 4, 1.5);
+moon.userData = MOON;
+moon.castShadow = true;
+var orbitMoon = createOrbit(4, 0xffff00, 5.1);
+orbitMoon.position.z += 60;
+orbitMoon.add(moon);
+earth_object.add(orbitMoon);
+
+orbitEarth.add(earth_object);
+
 earth.userData = PLANETS[2];
 planets.push(earth);
 
@@ -503,16 +523,21 @@ orbitNeptune.add(neptune);
 neptune.userData = PLANETS[7];
 planets.push(neptune);
 
-sun.add(orbitMercury);
-sun.add(orbitVenus);
-sun.add(orbitEarth);
-sun.add(orbitMars);
-sun.add(orbitJupiter);
-sun.add(orbitSaturn);
-sun.add(orbitUranus);
-sun.add(orbitNeptune);
+var solar_system = new THREE.Object3D();
 
-scene.add(sun);
+solar_system.position.set(0, 0, 0);
+
+solar_system.add(sun);
+solar_system.add(orbitMercury);
+solar_system.add(orbitVenus);
+solar_system.add(orbitEarth);
+solar_system.add(orbitMars);
+solar_system.add(orbitJupiter);
+solar_system.add(orbitSaturn);
+solar_system.add(orbitUranus);
+solar_system.add(orbitNeptune);
+
+scene.add(solar_system);
 
 getDirectionalLights();
 
