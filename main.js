@@ -43,7 +43,7 @@ function getTexture(src) {
     return texture;
 }
 
-function createSun(intensity) {
+function createSun() {
     var texture = getTexture('/textures/sun.jpg');
     texture.wrapS = THREE.ClampToEdgeWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
@@ -56,11 +56,6 @@ function createSun(intensity) {
     });
 
     var sun = new THREE.Mesh(geometry, material);
-
-    var sunLight = new THREE.PointLight(0xffffff, intensity, 100000, 0.05);
-    //sunLight.castShadow = true;
-
-    sun.add(sunLight);
     return sun;
 }
 
@@ -167,24 +162,41 @@ window.addEventListener('resize', function () {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }, false);
 
-var speed = 1;
 var intensity = 1.5;
+var speed = 1;
+var sunLight;
 
 function animation(orbit, planet, orbitSpeed, rotateSpeed) {
-    orbit.rotation.y += orbitSpeed * speed;
-    planet.rotation.y += rotateSpeed * speed;
+    const adjustedOrbitSpeed = orbitSpeed * speed;
+    const adjustedRotateSpeed = rotateSpeed * speed;
+
+    orbit.rotation.y += adjustedOrbitSpeed;
+    planet.rotation.y += adjustedRotateSpeed;
 }
 
 function update(renderer, scene, camera, controls) {
+    // Cập nhật giá trị thanh trượt độ sáng
+    intensityControl.value = intensity.toFixed(1);
+
+    // Cập nhật giá trị thanh trượt tốc độ
+    speedControl.value = speed.toFixed(1);
+
+    // Cập nhật giá trị hiển thị độ sáng
+    intensityValue.textContent = intensity.toFixed(1);
+
+    // Cập nhật giá trị hiển thị tốc độ
+    speedValue.textContent = speed.toFixed(1);
+    
     //animation here
-    animation(orbitMercury, mercury, 0.001 * 47.89/29.79, 0.1 * 365/88);
-    animation(orbitVenus, venus, 0.001 * 35.04/29.79, 0.1 * 365/220);
-    animation(orbitEarth, earth, 0.001, 0.1);
-    animation(orbitMars, mars, 0.001 * 24.14/29.79, 0.1 * 1/2);
-    animation(orbitJupiter, jupiter, 0.001 * 13.06/29.79, 0.1 * 1/12);
-    animation(orbitSaturn, saturn, 0.001 * 9.64/29.79, 0.1 * 1/30);
-    animation(orbitUranus, uranus, 0.001 * 6.81/29.79, 0.1 * 1/84)
-    animation(orbitNeptune, neptune, 0.001 * 5.43/29.79, 0.1 * 1/160);
+    sun.rotation.y = 0.01 * speed;
+    animation(orbitMercury, mercury, 0.001 * 47.89/29.79 * speed, 0.1 * 365/88 * speed);
+    animation(orbitVenus, venus, 0.001 * 35.04/29.79 * speed, 0.1 * 365/220 * speed);
+    animation(orbitEarth, earth, 0.001 * speed, 0.1 * speed);
+    animation(orbitMars, mars, 0.001 * 24.14/29.79 * speed, 0.1 * 1/2 * speed);
+    animation(orbitJupiter, jupiter, 0.001 * 13.06/29.79 * speed, 0.1 * 1/12 * speed);
+    animation(orbitSaturn, saturn, 0.001 * 9.64/29.79 * speed, 0.1 * 1/30 * speed);
+    animation(orbitUranus, uranus, 0.001 * 6.81/29.79 * speed, 0.1 * 1/84 * speed)
+    animation(orbitNeptune, neptune, 0.001 * 5.43/29.79 * speed, 0.1 * 1/160 * speed);
 
     //-----------------------------------------    
     renderer.render(scene, camera);
@@ -194,8 +206,83 @@ function update(renderer, scene, camera, controls) {
     })
 }
 
+// Tạo thanh trượt và thêm sự kiện lắng nghe
+const speedControl = document.createElement('input');
+speedControl.type = 'range';
+speedControl.min = '0.1';
+speedControl.max = '3';
+speedControl.step = '0.1';
+speedControl.value = '1'; // Thiết lập giá trị mặc định
+speedControl.addEventListener('input', function() {
+    speed = parseFloat(this.value); // Cập nhật tốc độ từ giá trị của thanh trượt
+});
 
-var sun = createSun(intensity);
+// Tạo một phần tử để hiển thị giá trị tốc độ
+const speedValue = document.createElement('span');
+speedValue.textContent = speed.toFixed(1);
+
+// Thêm thanh trượt và phần tử hiển thị vào thanh điều khiển tốc độ
+const speedControlPanel = document.createElement('div');
+speedControlPanel.id = 'speedControlPanel';
+speedControlPanel.appendChild(document.createTextNode('Tốc độ mô phỏng: '));
+speedControlPanel.appendChild(speedControl);
+speedControlPanel.appendChild(speedValue);
+
+// Thêm thanh điều khiển vào body của trang web
+document.body.appendChild(speedControlPanel);
+
+// Thêm CSS cho speedControlPanel
+speedControlPanel.style.color = 'white'; // Thay đổi màu chữ
+speedControlPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'; // Thay đổi màu nền
+speedControlPanel.style.padding = '10px'; // Thay đổi padding
+speedControlPanel.style.borderRadius = '5px'; // Thay đổi đường cong viền
+speedControlPanel.style.fontSize = '16px'; // Thay đổi cỡ chữ
+speedControlPanel.style.position = 'fixed'; // Thiết lập vị trí tuyệt đối
+speedControlPanel.style.bottom = '20px'; // Vị trí từ phía dưới
+speedControlPanel.style.left = '20px'; // Vị trí từ phía trái
+
+// Tạo thanh trượt và thêm sự kiện lắng nghe
+const intensityControl = document.createElement('input');
+intensityControl.type = 'range';
+intensityControl.min = '0';
+intensityControl.max = '5';
+intensityControl.step = '0.1';
+intensityControl.value = '1.5'; // Thiết lập giá trị mặc định
+intensityControl.addEventListener('input', function() {
+    intensity = parseFloat(this.value); // Cập nhật intensity từ giá trị của thanh trượt
+    // Cập nhật intensity cho ánh sáng của mặt trời
+    sunLight.intensity = intensity;
+});
+
+// Tạo một phần tử để hiển thị giá trị intensity
+const intensityValue = document.createElement('span');
+intensityValue.textContent = intensity.toFixed(1);
+
+// Thêm thanh trượt và phần tử hiển thị vào thanh điều khiển intensity
+const intensityControlPanel = document.createElement('div');
+intensityControlPanel.id = 'intensityControlPanel';
+intensityControlPanel.appendChild(document.createTextNode('Độ sáng: '));
+intensityControlPanel.appendChild(intensityControl);
+intensityControlPanel.appendChild(intensityValue);
+
+// Thêm thanh điều khiển vào body của trang web
+document.body.appendChild(intensityControlPanel);
+
+// Thêm CSS cho intensityControlPanel
+intensityControlPanel.style.color = 'white'; // Thay đổi màu chữ
+intensityControlPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'; // Thay đổi màu nền
+intensityControlPanel.style.padding = '10px'; // Thay đổi padding
+intensityControlPanel.style.borderRadius = '5px'; // Thay đổi đường cong viền
+intensityControlPanel.style.fontSize = '16px'; // Thay đổi cỡ chữ
+intensityControlPanel.style.position = 'fixed'; // Thiết lập vị trí tuyệt đối
+intensityControlPanel.style.bottom = '80px'; // Vị trí từ phía dưới
+intensityControlPanel.style.left = '20px'; // Vị trí từ phía trái
+
+sunLight = new THREE.PointLight(0xffffff, intensity, 100000, 0.05);
+var sun = createSun();
+sun.add(sunLight);
+
+
 
 //mercury
 var mercury = createPlanet(0.75, "textures/mercury.jpg", "textures/mercury_topo.jpg", 35, 2);
@@ -253,3 +340,5 @@ scene.add(sun);
 getDirectionalLights();
 
 update(renderer, scene, camera, controls);
+
+
