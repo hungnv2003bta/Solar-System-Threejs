@@ -99,15 +99,15 @@ const PLANETS = [
 ];
 
 const MOON = {
-        name: 'Moon',
-        radius: 1737.4,  // km
-        distance: 0.384,  // million km from Earth
-        orbitDuration: 27.3,  // Earth days
-        rotationDuration: 655.7,  // hours (27.3 Earth days)
-        orbitInclination: 5.145,  // degrees to the plane of Earth's orbit
-        axialTilt: 1.54,  // degrees
-        surfaceTemperature: -180,  // Celsius
-        num_satellites: 0
+    name: 'Moon',
+    radius: 1737.4,  // km
+    distance: 0.384,  // million km from Earth
+    orbitDuration: 27.3,  // Earth days
+    rotationDuration: 655.7,  // hours (27.3 Earth days)
+    orbitInclination: 5.145,  // degrees to the plane of Earth's orbit
+    axialTilt: 1.54,  // degrees
+    surfaceTemperature: -180,  // Celsius
+    num_satellites: 0
 };
 
 function setCamera(camera) {
@@ -229,7 +229,7 @@ function createPlanet(radius, src_base, src_topo, distanceFromParent, rotate, cl
 function createRing(planet, base, color, rotate) {
     var innerRadius = planet.radius * 1.2;
     var outerRadius = innerRadius + planet.radius * 0.5;
-    var thetaSegments = 30;
+    var thetaSegments = 80;
     var geometry = new THREE.RingGeometry(innerRadius, outerRadius, thetaSegments);
 
     var map = getTexture(base);
@@ -309,7 +309,7 @@ let focusedPlanet = null;
 function focusOnPlanet(planet) {
     focusedPlanet = planet;
     const offset = planet.radius * 2;
-    
+
     const worldPosition = new THREE.Vector3();
     planet.getWorldPosition(worldPosition);
 
@@ -345,6 +345,58 @@ function focusOnSun() {
     displayDetails(sunData);
 }
 
+function viewSolar() {   
+    focusedPlanet = null 
+    new TWEEN.Tween(camera.position)
+        .to({ x: 0, y: 400, z: 250 }, 4000)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .start();
+    
+    new TWEEN.Tween(controls.target)
+        .to({x: 0, y: 0, z: 0}, 4000)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .start();
+    
+    camera.lookAt(sun.position);
+    }
+
+function highlightOrbit() {
+    const materials = [
+        new THREE.MeshBasicMaterial({ color: 0xFF0000 }),   // Màu đỏ
+        new THREE.MeshBasicMaterial({ color: 0xFFA500 }),   // Màu cam
+        new THREE.MeshBasicMaterial({ color: 0xFFFF00 }),   // Màu vàng
+        new THREE.MeshBasicMaterial({ color: 0x008000 }),   // Màu xanh lá cây
+        new THREE.MeshBasicMaterial({ color: 0x0000FF }),   // Màu xanh dương
+        new THREE.MeshBasicMaterial({ color: 0x800080 }),   // Màu chàm
+        new THREE.MeshBasicMaterial({ color: 0xFFC0CB }),   // Màu hồng
+        new THREE.MeshBasicMaterial({ color: 0x00FFFF }),   // Màu xanh da trời
+        new THREE.MeshBasicMaterial({ color: 0x800080 })    // Màu tím (Lặp lại màu chàm)
+    ];
+    orbitMercury.material = materials[0];
+    orbitVenus.material = materials[1];
+    orbitEarth.material = materials[2];
+    orbitMoon.material = materials[3];
+    orbitMars.material = materials[4];
+    orbitJupiter.material = materials[5];
+    orbitSaturn.material = materials[6];
+    orbitUranus.material = materials[7];
+    orbitNeptune.material = materials[8];
+}
+
+function dehighlightOrbit() { 
+    const grayMaterial = new THREE.LineBasicMaterial({ color: 0x808080 }); // Màu xám
+
+    orbitMercury.material = grayMaterial;
+    orbitVenus.material = grayMaterial;
+    orbitEarth.material = grayMaterial;
+    orbitMoon.material = grayMaterial;
+    orbitMars.material = grayMaterial;
+    orbitJupiter.material = grayMaterial;
+    orbitSaturn.material = grayMaterial;
+    orbitUranus.material = grayMaterial;
+    orbitNeptune.material = grayMaterial;
+}
+
 var intensity = 1.5;
 var speed = 1;
 var sunLight;
@@ -356,7 +408,7 @@ function animation(orbit, planet) {
 
     orbit.rotation.y += adjustedOrbitSpeed;
     planet.rotation.y += adjustedRotateSpeed;
-    
+
 }
 
 function update(renderer, scene, camera, controls) {
@@ -381,20 +433,20 @@ function update(renderer, scene, camera, controls) {
     animation(orbitUranus, uranus)
     animation(orbitNeptune, neptune);
 
-    switch (focusedPlanet) { 
-        case mercury: 
+    switch (focusedPlanet) {
+        case mercury:
             focusOnPlanet(mercury);
             break;
-        case venus: 
+        case venus:
             focusOnPlanet(venus);
             break;
-        case earth: 
+        case earth:
             focusOnPlanet(earth);
             break;
-        case mars: 
+        case mars:
             focusOnPlanet(mars);
             break;
-        case jupiter: 
+        case jupiter:
             focusOnPlanet(jupiter);
             break;
         case saturn:
@@ -406,10 +458,13 @@ function update(renderer, scene, camera, controls) {
         case uranus:
             focusOnPlanet(uranus);
             break;
+        case moon:
+            focusOnPlanet(moon);
+            break;
         default:
             break;
     }
- 
+
     renderer.render(scene, camera);
     controls.update();
     TWEEN.update();
@@ -425,9 +480,9 @@ speedControl.type = 'range';
 speedControl.min = '0';
 speedControl.max = '5';
 speedControl.step = '0.1';
-speedControl.value = '1'; 
+speedControl.value = '1';
 speedControl.addEventListener('input', function () {
-    speed = parseFloat(this.value); 
+    speed = parseFloat(this.value);
 });
 
 const speedValue = document.createElement('span');
@@ -441,13 +496,13 @@ speedControlPanel.appendChild(speedValue);
 
 document.body.appendChild(speedControlPanel);
 
-speedControlPanel.style.color = 'white'; 
-speedControlPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'; 
-speedControlPanel.style.padding = '10px'; 
-speedControlPanel.style.borderRadius = '5px'; 
+speedControlPanel.style.color = 'white';
+speedControlPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+speedControlPanel.style.padding = '10px';
+speedControlPanel.style.borderRadius = '5px';
 speedControlPanel.style.fontSize = '16px';
-speedControlPanel.style.position = 'fixed'; 
-speedControlPanel.style.bottom = '20px'; 
+speedControlPanel.style.position = 'fixed';
+speedControlPanel.style.bottom = '20px';
 speedControlPanel.style.left = '20px';
 
 // Create Sensity Controller
@@ -456,9 +511,9 @@ intensityControl.type = 'range';
 intensityControl.min = '0';
 intensityControl.max = '5';
 intensityControl.step = '0.1';
-intensityControl.value = '1.5'; 
+intensityControl.value = '1.5';
 intensityControl.addEventListener('input', function () {
-    intensity = parseFloat(this.value); 
+    intensity = parseFloat(this.value);
     sunLight.intensity = intensity;
 });
 
@@ -475,11 +530,11 @@ document.body.appendChild(intensityControlPanel);
 
 intensityControlPanel.style.color = 'white';
 intensityControlPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-intensityControlPanel.style.padding = '10px'; 
-intensityControlPanel.style.borderRadius = '5px'; 
-intensityControlPanel.style.fontSize = '16px'; 
-intensityControlPanel.style.position = 'fixed'; 
-intensityControlPanel.style.bottom = '80px'; 
+intensityControlPanel.style.padding = '10px';
+intensityControlPanel.style.borderRadius = '5px';
+intensityControlPanel.style.fontSize = '16px';
+intensityControlPanel.style.position = 'fixed';
+intensityControlPanel.style.bottom = '80px';
 intensityControlPanel.style.left = '20px';
 
 //Create Solar System
@@ -495,14 +550,14 @@ let planets = [];
 
 //mercury
 var mercury = createPlanet(0.75, "textures/mercury.jpg", "textures/mercury_topo.jpg", 35, 2);
-var orbitMercury = createOrbit(35, 0xffff00, 2);
+var orbitMercury = createOrbit(35, 0x808080, 2);
 orbitMercury.add(mercury);
 mercury.userData = PLANETS[0];
 planets.push(mercury);
 
 //venus
 var venus = createPlanet(1.9, "textures/venus.jpg", "textures/venus_topo.jpg", 44, 177.3);
-var orbitVenus = createOrbit(44, 0xffff00, 3.4);
+var orbitVenus = createOrbit(44, 0x808080, 3.4);
 orbitVenus.add(venus);
 venus.userData = PLANETS[1];
 planets.push(venus);
@@ -511,13 +566,13 @@ planets.push(venus);
 var earth_object = new THREE.Object3D();
 var earth = createPlanet(2, "textures/earth.jpg", "textures/earth_topo.jpg", 60, 23.5, "textures/earth_clouds.png");
 earth.receiveShadow = true;
-var orbitEarth = createOrbit(60, 0xffff00, 0);
+var orbitEarth = createOrbit(60, 0x808080, 0);
 earth_object.add(earth);
 
 var moon = createPlanet(0.5, "textures/moon.jpg", "textures/moon_topo.jpg", 4, 1.5);
 moon.userData = MOON;
 moon.castShadow = true;
-var orbitMoon = createOrbit(4, 0xffff00, 5.1);
+var orbitMoon = createOrbit(4, 0x808080, 5.1);
 orbitMoon.position.z += 60;
 orbitMoon.add(moon);
 earth_object.add(orbitMoon);
@@ -529,14 +584,14 @@ planets.push(earth);
 
 //mars
 var mars = createPlanet(1.1, "textures/mars.jpg", "textures/mars_topo.jpg", 90, 25.2);
-var orbitMars = createOrbit(90, 0xffff00, 1.8);
+var orbitMars = createOrbit(90, 0x808080, 1.8);
 orbitMars.add(mars);
 mars.userData = PLANETS[3];
 planets.push(mars);
 
 //jupiter
 var jupiter = createPlanet(6, "textures/jupiter.jpg", null, 200, 3.1);
-var orbitJupiter = createOrbit(200, 0xffff00, 1.3);
+var orbitJupiter = createOrbit(200, 0x808080, 1.3);
 orbitJupiter.add(jupiter);
 jupiter.userData = PLANETS[4];
 planets.push(jupiter)
@@ -545,21 +600,21 @@ planets.push(jupiter)
 var saturn = createPlanet(5, "textures/saturn.jpg", null, 300, 26.7);
 var saturnRing = createRing(saturn, "textures/rings_map.png", "textures/rings_color_map.png", 26.7);
 saturn.add(saturnRing);
-var orbitSaturn = createOrbit(300, 0xffff00, 2.5);
+var orbitSaturn = createOrbit(300, 0x808080, 2.5);
 orbitSaturn.add(saturn);
 saturn.userData = PLANETS[5];
 planets.push(saturn);
 
 //uranus
 var uranus = createPlanet(2.5, "textures/uranus.jpg", null, 450, 97.8);
-var orbitUranus = createOrbit(450, 0xffff00, 0.8);
+var orbitUranus = createOrbit(450, 0x808080, 0.8);
 orbitUranus.add(uranus);
 uranus.userData = PLANETS[6];
 planets.push(uranus);
 
 //neptune
 var neptune = createPlanet(2.5, "textures/neptune.jpg", null, 590, 29.6);
-var orbitNeptune = createOrbit(590, 0xffff00, 1.7);
+var orbitNeptune = createOrbit(590, 0x808080, 1.7);
 orbitNeptune.add(neptune);
 neptune.userData = PLANETS[7];
 planets.push(neptune);
@@ -592,9 +647,27 @@ planetList.appendChild(sunItem);
 planets.forEach((planet, index) => {
     const li = document.createElement('li');
     li.textContent = PLANETS[index].name;
-    li.addEventListener('click', () => {showDataPlanet(planet), focusOnPlanet(planet)});
+    li.addEventListener('click', () => { showDataPlanet(planet), focusOnPlanet(planet) });
     planetList.appendChild(li);
 });
+
+const moonItem = document.createElement('li');
+moonItem.textContent = MOON.name;
+moonItem.addEventListener('click', () => { showDataPlanet(moon), focusOnPlanet(moon) });
+planetList.appendChild(moonItem);
+
+const checkbox = document.getElementById('Checkbox');
+
+checkbox.addEventListener('change', function() {
+    if (this.checked) {
+        highlightOrbit(); 
+    } else {
+        dehighlightOrbit(); 
+    }
+});
+
+const view = document.getElementById('view-solar');
+view.addEventListener('click', () => viewSolar());
 
 update(renderer, scene, camera, controls);
 
