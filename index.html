@@ -1,18 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<title>Solar System</title>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<script type = "importmap">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>Solar System</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<script type="importmap">
 			{
 				"imports": {
 					"three": "/build/three.module.js"
 				}
 			}
-		</script> 
-	</head>
-	<body>
-		<script src="main.js" type = "module"></script>
-	</body>
+		</script>
+	<style>
+		body {
+			margin: 0;
+			overflow: hidden;
+			font-family: Arial, sans-serif;
+			background-color: #000;
+			color: #fff;
+		}
+
+		#info {
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			color: white;
+			font-family: Arial, sans-serif;
+			font-size: 18px;
+		}
+
+		#menu {
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			background: rgba(0, 0, 0, 0.5);
+			border-radius: 10px;
+			padding: 10px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+		}
+
+		#menu h2 {
+			margin: 0;
+			padding: 0;
+			text-align: center;
+			font-size: 22px;
+			border-bottom: 1px solid #444;
+			padding-bottom: 10px;
+		}
+
+		#menu ul {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+
+		#menu li {
+			margin: 10px 0;
+			padding: 10px;
+			background: #333;
+			border-radius: 5px;
+			transition: background 0.3s;
+			cursor: pointer;
+			text-align: center;
+		}
+
+		#menu li:hover {
+			background: #555;
+		}
+
+		#modal {
+			display: none;
+			position: absolute;
+			top: 10px;
+			right: 200px;
+			background: rgba(0, 0, 0, 0.7);
+			border-radius: 10px;
+			padding: 10px;
+			width: 300px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+		}
+
+		#modal-content {
+			background: #333;
+			padding: 20px;
+			border-radius: 10px;
+			max-width: 500px;
+			width: 80%;
+		}
+
+		#modal img {
+			width: 100%;
+			border-radius: 10px;
+			margin-bottom: 10px;
+		}
+
+		#modal h2 {
+			margin: 0;
+			font-size: 24px;
+		}
+
+		#modal p {
+			margin: 5px 0;
+		}
+
+		#close-btn {
+			background: #444;
+			border: none;
+			color: #fff;
+			padding: 10px 20px;
+			border-radius: 5px;
+			cursor: pointer;
+			margin-top: 10px;
+		}
+
+		#close-btn:hover {
+			background: #555;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="info">Click on a planet to see information</div>
+	<div id="menu">
+		<h2>Planets</h2>
+		<ul id="planet-list"></ul>
+	</div>
+	<div id="modal">
+		<div id="modal-content">
+			<h2 id="modal-title"></h2>
+			<p id="modal-radius"></p>
+			<p id="modal-distance"></p>
+			<p id="modal-orbit-duration"></p>
+			<p id="modal-rotation-duration"></p>
+			<p id="modal-orbit-inclination"></p>
+			<p id="modal-surface-temperature"></p>
+			<p id="modal-num_satellites"></p>
+			<button id="close-btn">Close</button>
+		</div>
+	</div>
+	<script src="build/perlin.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/20.0.0/tween.umd.js"></script>
+	<script src="main.js" type="module"></script>
+</body>
+
 </html>
