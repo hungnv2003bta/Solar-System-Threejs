@@ -28,6 +28,10 @@
 			color: white;
 			font-family: Arial, sans-serif;
 			font-size: 18px;
+			background: rgba(0, 0, 0, 0.5);
+			border-radius: 10px;
+			padding: 10px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 		}
 
 		#menu {
@@ -117,15 +121,48 @@
 		#close-btn:hover {
 			background: #555;
 		}
+
+		#highlight { 
+			display: flex; 
+    		align-items: center;
+			position: fixed;
+			bottom: 15px;
+			left: 50%;
+    		transform: translateX(-50%);
+			color: black;
+			background: rgba(255, 255, 255, 0.6);
+			font-size: 10px;
+			border-radius: 5px;
+			padding: 0px;
+		}
+
+		#highlight input[type="checkbox"] {
+    		transform: scale(0.8); 
+		}
+
+		#view-solar {
+			position: absolute;
+			bottom: 140px;
+			left: 20px;
+			color: white;
+			background:#333;
+			font-size: 16px;
+			border-radius: 5px;
+			padding: 10px;
+		}
 	</style>
 </head>
 
 <body>
-	<div id="info">Click on a planet to see information</div>
+	<div id="info">SOLAR SYSTEM SIMULATION</div>
 	<div id="menu">
 		<h2>Planets</h2>
 		<ul id="planet-list"></ul>
 	</div>
+	<div id = "highlight">
+		<input type="checkbox" id = "Checkbox"> Highlight Orbit .  
+	</div>
+	<button id = "view-solar">View All</button>
 	<div id="modal">
 		<div id="modal-content">
 			<h2 id="modal-title"></h2>
