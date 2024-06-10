@@ -111,7 +111,7 @@ const MOON = {
 };
 
 function setCamera(camera) {
-    camera.position.set(0, 0, 300);
+    camera.position.set(0, 400, 250);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 }
 
@@ -133,6 +133,8 @@ window.addEventListener('resize', function () {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 }, false);
+
+//FUNCTIONS
 
 function getDirectionalLights() {
     for (var i = 0; i < 4; i++) {
@@ -297,27 +299,37 @@ function displayDetails(data) {
     };
 }
 
-function focusOnPlanet(planet) {
+function showDataPlanet(planet) {
     const planetData = planet.userData;
-    const offset = planet.radius * 2;
+    displayDetails(planetData);
+}
 
-    const newPos = new THREE.Vector3().copy(planet.position).add(new THREE.Vector3(offset, offset, offset));
+let focusedPlanet = null;
+
+function focusOnPlanet(planet) {
+    focusedPlanet = planet;
+    const offset = planet.radius * 2;
+    
+    const worldPosition = new THREE.Vector3();
+    planet.getWorldPosition(worldPosition);
+
+    const newPos = new THREE.Vector3().copy(worldPosition).add(new THREE.Vector3(-offset, offset, -offset));
 
     new TWEEN.Tween(camera.position)
-        .to(newPos, 2000)
+        .to(newPos, 0)
         .easing(TWEEN.Easing.Quadratic.Out)
         .start();
 
     new TWEEN.Tween(controls.target)
-        .to(planet.position, 2000)
+        .to(worldPosition, 0)
         .easing(TWEEN.Easing.Quadratic.Out)
         .start();
 
-    displayDetails(planetData);
-
+    camera.lookAt(worldPosition);
 }
 
 function focusOnSun() {
+    focusedPlanet = sun;
     const sunData = sun.userData;
     new TWEEN.Tween(camera.position)
         .to({ x: 20, y: 20, z: 20 }, 2000)
@@ -338,13 +350,13 @@ var speed = 1;
 var sunLight;
 
 // Update animations
-
 function animation(orbit, planet) {
     const adjustedOrbitSpeed = 0.001 * (365.25 / planet.userData.orbitDuration) * speed;
     const adjustedRotateSpeed = 0.1 * (24 / planet.userData.rotationDuration) * speed;
 
     orbit.rotation.y += adjustedOrbitSpeed;
     planet.rotation.y += adjustedRotateSpeed;
+    
 }
 
 function update(renderer, scene, camera, controls) {
@@ -368,12 +380,41 @@ function update(renderer, scene, camera, controls) {
     animation(orbitSaturn, saturn);
     animation(orbitUranus, uranus)
     animation(orbitNeptune, neptune);
+
+    switch (focusedPlanet) { 
+        case mercury: 
+            focusOnPlanet(mercury);
+            break;
+        case venus: 
+            focusOnPlanet(venus);
+            break;
+        case earth: 
+            focusOnPlanet(earth);
+            break;
+        case mars: 
+            focusOnPlanet(mars);
+            break;
+        case jupiter: 
+            focusOnPlanet(jupiter);
+            break;
+        case saturn:
+            focusOnPlanet(saturn);
+            break;
+        case neptune:
+            focusOnPlanet(neptune);
+            break;
+        case uranus:
+            focusOnPlanet(uranus);
+            break;
+        default:
+            break;
+    }
  
     renderer.render(scene, camera);
     controls.update();
+    TWEEN.update();
 
     requestAnimationFrame(function () {
-        TWEEN.update();
         update(renderer, scene, camera, controls);
     })
 }
@@ -381,8 +422,8 @@ function update(renderer, scene, camera, controls) {
 // create Speed Controller
 const speedControl = document.createElement('input');
 speedControl.type = 'range';
-speedControl.min = '0.1';
-speedControl.max = '3';
+speedControl.min = '0';
+speedControl.max = '5';
 speedControl.step = '0.1';
 speedControl.value = '1'; 
 speedControl.addEventListener('input', function () {
@@ -537,9 +578,9 @@ solar_system.add(orbitSaturn);
 solar_system.add(orbitUranus);
 solar_system.add(orbitNeptune);
 
-scene.add(solar_system);
-
 getDirectionalLights();
+
+scene.add(solar_system);
 
 const planetList = document.getElementById('planet-list');
 
@@ -551,7 +592,7 @@ planetList.appendChild(sunItem);
 planets.forEach((planet, index) => {
     const li = document.createElement('li');
     li.textContent = PLANETS[index].name;
-    li.addEventListener('click', () => focusOnPlanet(planet));
+    li.addEventListener('click', () => {showDataPlanet(planet), focusOnPlanet(planet)});
     planetList.appendChild(li);
 });
 
