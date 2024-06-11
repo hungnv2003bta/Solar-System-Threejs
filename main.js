@@ -146,24 +146,6 @@ window.addEventListener('resize', function () {
 
 //FUNCTIONS
 
-function getDirectionalLights() {
-    for (var i = 0; i < 4; i++) {
-        var light = new THREE.DirectionalLight(0xffffff, 0.02);
-        switch (i) {
-            case 0:
-                light.position.set(0, 0, 1000);
-                break;
-            case 1:
-                light.position.set(0, 0, -1000);
-            case 2:
-                light.position.set(1000, 0, 0);
-            case 3:
-                light.position.set(-1000, 0, 0);
-        }
-        scene.add(light);
-    }
-}
-
 function getTexture(src) {
     var textureLoader = new THREE.TextureLoader();
     var texture = textureLoader.load(src);
@@ -700,7 +682,8 @@ solar_system.add(orbitSaturn);
 solar_system.add(orbitUranus);
 solar_system.add(orbitNeptune);
 
-// getDirectionalLights();
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.05);
+scene.add(ambientLight);
 
 scene.add(solar_system);
 
