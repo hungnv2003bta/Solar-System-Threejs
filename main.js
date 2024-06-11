@@ -24,7 +24,8 @@ const PLANETS = [
         rotationDuration: 1407.6,  // hours
         orbitInclination: 7,  // degrees
         surfaceTemperature: 430,  // Celsius
-        num_satellites: 0
+        num_satellites: 0,
+        sound: '/sounds/Mercury.mp3'
     },
     {
         name: 'Sao Kim',
@@ -34,7 +35,8 @@ const PLANETS = [
         rotationDuration: 5832.5,  // hours
         orbitInclination: 3.4,  // degrees
         surfaceTemperature: 470,  // Celsius
-        num_satellites: 0
+        num_satellites: 0,
+        sound: '/sounds/Venus.mp3'
     },
     {
         name: 'Trái Đất',
@@ -44,7 +46,8 @@ const PLANETS = [
         rotationDuration: 24,  // hours
         orbitInclination: 0,  // degrees
         surfaceTemperature: 20,  // Celsius
-        num_satellites: 1
+        num_satellites: 1,
+        sound: '/sounds/Earth.mp3'
     },
     {
         name: 'Sao Hoả',
@@ -54,7 +57,8 @@ const PLANETS = [
         rotationDuration: 24.6,  // hours
         orbitInclination: 1.85,  // degrees
         surfaceTemperature: -25,  // Celsius
-        num_satellites: 2
+        num_satellites: 2,
+        sound: '/sounds/Mars.mp3'
     },
     {
         name: 'Sao Mộc',
@@ -64,7 +68,8 @@ const PLANETS = [
         rotationDuration: 10,  // hours
         orbitInclination: 1.3,  // degrees
         surfaceTemperature: -150,  // Celsius
-        num_satellites: 79
+        num_satellites: 79,
+        sound: '/sounds/Jupiter.mp3'
     },
     {
         name: 'Sao Thổ',
@@ -74,7 +79,8 @@ const PLANETS = [
         rotationDuration: 10.7,  // hours
         orbitInclination: 2.48,  // degrees
         surfaceTemperature: -180,  // Celsius
-        num_satellites: 83
+        num_satellites: 83,
+        sound: '/sounds/Saturn.mp3'
     },
     {
         name: 'Sao Thiên Vương',
@@ -84,7 +90,8 @@ const PLANETS = [
         rotationDuration: 17.2,  // hours
         orbitInclination: 0.77,  // degrees
         surfaceTemperature: -210,  // Celsius
-        num_satellites: 27
+        num_satellites: 27,
+        sound: '/sounds/Uranus.mp3'
     },
     {
         name: 'Sao Hải Vương',
@@ -94,7 +101,8 @@ const PLANETS = [
         rotationDuration: 16.1,  // hours
         orbitInclination: 1.77,  // degrees
         surfaceTemperature: -220,  // Celsius
-        num_satellites: 14
+        num_satellites: 14,
+        sound: '/sounds/Neptune.mp3'
     }
 ];
 
@@ -107,7 +115,8 @@ const MOON = {
     orbitInclination: 5.145,  // degrees to the plane of Earth's orbit
     axialTilt: 1.54,  // degrees
     surfaceTemperature: -180,  // Celsius
-    num_satellites: 0
+    num_satellites: 0,
+    sound: '/sounds/Moon.mp3'
 };
 
 function setCamera(camera) {
@@ -313,16 +322,49 @@ function displayDetails(data) {
 function showDataPlanet(planet) {
     const planetData = planet.userData;
     displayDetails(planetData);
+    unfocus();
+    playFocusSound(planet.userData.sound);
 }
 
 let focusedPlanet = null;
+let focusAudio = null;
 
-function playFocusSound(sound_path) {
-    var audio = new Audio(sound_path);
-    audio.play();
+function unfocus() {
+    if (focusAudio) {
+        focusAudio.pause(); // Stop the audio
+        focusAudio.currentTime = 0; // Reset the audio to the start
+        focusAudio = null; // Clear the audio object
+    }
+}
+
+function playFocusSound(sound) {
+    // Check if focusAudio exists and stop it properly
+    if (focusAudio) {
+        focusAudio.pause();
+        focusAudio.currentTime = 0;
+    }
+
+    // Create a new Audio object and assign it to focusAudio
+    focusAudio = new Audio(sound);
+
+    // Ensure the previous audio is fully stopped before starting a new one
+    focusAudio.addEventListener('canplaythrough', () => {
+        focusAudio.loop = true; // Set to loop
+        focusAudio.play().catch((error) => {
+            console.error('Audio playback failed:', error);
+        });
+    });
+
+    // Error handling for playback issues
+    focusAudio.addEventListener('error', (event) => {
+        console.error('Error playing audio:', event);
+    });
+
+    console.log('Playing sound for:', sound);
 }
 
 function focusOnPlanet(planet) {
+
     focusedPlanet = planet;
     //Tính Toán Khoảng Cách Camera
     const offset = planet.radius * 2;
@@ -350,6 +392,9 @@ function focusOnPlanet(planet) {
 }
 
 function focusOnSun() {
+    unfocus();
+    playFocusSound('./sounds/Sun.mp3');
+
     focusedPlanet = sun;
     const sunData = sun.userData;
     new TWEEN.Tween(camera.position)
@@ -367,6 +412,8 @@ function focusOnSun() {
 }
 
 function viewSolar() {   
+    unfocus();
+
     focusedPlanet = null 
     new TWEEN.Tween(camera.position)
         .to({ x: 0, y: 400, z: 250 }, 4000)
@@ -656,6 +703,7 @@ solar_system.add(orbitNeptune);
 // getDirectionalLights();
 
 scene.add(solar_system);
+
 
 const planetList = document.getElementById('planet-list');
 
