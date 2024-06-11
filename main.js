@@ -700,7 +700,8 @@ solar_system.add(orbitSaturn);
 solar_system.add(orbitUranus);
 solar_system.add(orbitNeptune);
 
-// getDirectionalLights();
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.07);
+scene.add(ambientLight);
 
 scene.add(solar_system);
 
