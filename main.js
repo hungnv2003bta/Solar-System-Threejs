@@ -220,6 +220,9 @@ function createSurface(radius, src_base, src_topo) {
     if (src_base == "textures/moon.jpg") {
         mesh.receiveShadow = true;
     }
+    if (src_base == "textures/earth.jpg") {
+        mesh.receiveShadow = true;
+    }
     return mesh;
 }
 
@@ -227,6 +230,9 @@ function createPlanet(radius, src_base, src_topo, distanceFromParent, rotate, cl
     var planet = new THREE.Mesh(new THREE.SphereGeometry(radius - 0.1, 32, 32));
     if (src_base == "textures/earth.jpg") {
         planet.castShadow = true;
+    }
+    if (src_base == "textures/moon.jpg") {
+        planet.cashShadow = true;
     }
     var surface = createSurface(radius, src_base, src_topo);
     planet.add(surface);
