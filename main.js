@@ -5,7 +5,7 @@ import { OrbitControls } from '/controls/OrbitControls.js';
 // SOLAR SYSTEM DATAS
 
 const SUN = {
-    name: 'Sun',
+    name: 'Mặt Trời',
     radius: 696340,  // km
     distance: 0,  // km from itself
     orbitDuration: 0,  // N/A
@@ -17,89 +17,97 @@ const SUN = {
 
 const PLANETS = [
     {
-        name: 'Mercury',
+        name: 'Sao Thuỷ',
         radius: 2440,  // km
         distance: 57.9,  // million km from Sun
         orbitDuration: 88,  // Earth days
         rotationDuration: 1407.6,  // hours
         orbitInclination: 7,  // degrees
         surfaceTemperature: 430,  // Celsius
-        num_satellites: 0
+        num_satellites: 0,
+        sound: '/sounds/Mercury.mp3'
     },
     {
-        name: 'Venus',
+        name: 'Sao Kim',
         radius: 6052,  // km
         distance: 108.2,  // million km from Sun
         orbitDuration: 225,  // Earth days
         rotationDuration: 5832.5,  // hours
         orbitInclination: 3.4,  // degrees
         surfaceTemperature: 470,  // Celsius
-        num_satellites: 0
+        num_satellites: 0,
+        sound: '/sounds/Venus.mp3'
     },
     {
-        name: 'Earth',
+        name: 'Trái Đất',
         radius: 6371,  // km
         distance: 149.6,  // million km from Sun
         orbitDuration: 365.25,  // days
         rotationDuration: 24,  // hours
         orbitInclination: 0,  // degrees
         surfaceTemperature: 20,  // Celsius
-        num_satellites: 1
+        num_satellites: 1,
+        sound: '/sounds/Earth.mp3'
     },
     {
-        name: 'Mars',
+        name: 'Sao Hoả',
         radius: 3390,  // km
         distance: 227.9,  // million km from Sun
         orbitDuration: 687,  // Earth days
         rotationDuration: 24.6,  // hours
         orbitInclination: 1.85,  // degrees
         surfaceTemperature: -25,  // Celsius
-        num_satellites: 2
+        num_satellites: 2,
+        sound: '/sounds/Mars.mp3'
     },
     {
-        name: 'Jupiter',
+        name: 'Sao Mộc',
         radius: 69911,  // km
         distance: 778.5,  // million km from Sun
         orbitDuration: 4333,  // Earth days (11.86 years)
         rotationDuration: 10,  // hours
         orbitInclination: 1.3,  // degrees
         surfaceTemperature: -150,  // Celsius
-        num_satellites: 79
+        num_satellites: 79,
+        sound: '/sounds/Jupiter.mp3'
     },
     {
-        name: 'Saturn',
+        name: 'Sao Thổ',
         radius: 58232,  // km
         distance: 1400,  // million km from Sun
         orbitDuration: 10759,  // Earth days (29.45 years)
         rotationDuration: 10.7,  // hours
         orbitInclination: 2.48,  // degrees
         surfaceTemperature: -180,  // Celsius
-        num_satellites: 83
+        num_satellites: 83,
+        sound: '/sounds/Saturn.mp3'
     },
     {
-        name: 'Uranus',
+        name: 'Sao Thiên Vương',
         radius: 25362,  // km
         distance: 2871,  // million km from Sun
         orbitDuration: 30688,  // Earth days (84 years)
         rotationDuration: 17.2,  // hours
         orbitInclination: 0.77,  // degrees
         surfaceTemperature: -210,  // Celsius
-        num_satellites: 27
+        num_satellites: 27,
+        sound: '/sounds/Uranus.mp3'
     },
     {
-        name: 'Neptune',
+        name: 'Sao Hải Vương',
         radius: 24622,  // km
         distance: 4495,  // million km from Sun
         orbitDuration: 60190,  // Earth days (164.8 years)
         rotationDuration: 16.1,  // hours
         orbitInclination: 1.77,  // degrees
         surfaceTemperature: -220,  // Celsius
-        num_satellites: 14
+        num_satellites: 14,
+        sound: '/sounds/Neptune.mp3'
     }
 ];
 
 const MOON = {
-    name: 'Moon',
+    name: 'Mặt Trăng',
     radius: 1737.4,  // km
     distance: 0.384,  // million km from Earth
     orbitDuration: 27.3,  // Earth days
@@ -107,7 +115,8 @@ const MOON = {
     orbitInclination: 5.145,  // degrees to the plane of Earth's orbit
     axialTilt: 1.54,  // degrees
     surfaceTemperature: -180,  // Celsius
-    num_satellites: 0
+    num_satellites: 0,
+    sound: '/sounds/Moon.mp3'
 };
 
 function setCamera(camera) {
@@ -123,6 +132,7 @@ var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHei
 setCamera(camera);
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
 
 document.body.appendChild(renderer.domElement);
 
@@ -207,11 +217,23 @@ function createSurface(radius, src_base, src_topo) {
             bumpScale: bumpMap ? 0.5 : null,
         })
     );
+    if (src_base == "textures/moon.jpg") {
+        mesh.receiveShadow = true;
+    }
+    if (src_base == "textures/earth.jpg") {
+        mesh.receiveShadow = true;
+    }
     return mesh;
 }
 
 function createPlanet(radius, src_base, src_topo, distanceFromParent, rotate, cloud = null) {
     var planet = new THREE.Mesh(new THREE.SphereGeometry(radius - 0.1, 32, 32));
+    if (src_base == "textures/earth.jpg") {
+        planet.castShadow = true;
+    }
+    if (src_base == "textures/moon.jpg") {
+        planet.cashShadow = true;
+    }
     var surface = createSurface(radius, src_base, src_topo);
     planet.add(surface);
     if (cloud) {
@@ -258,10 +280,14 @@ function createOrbit(distanceFromParent, color, rotate) {
     const orbitGeometry = new THREE.BufferGeometry();
     const orbitMaterial = new THREE.LineBasicMaterial({ color: color });
     const points = [];
-    var resolution = distanceFromParent + 15 * 50;
+    // Tính toán số lượng điểm để tạo ra quỹ đạo
+    var resolution = distanceFromParent + 15 * 50;  
+    // Độ dài mỗi đoạn tính bằng độ, chia thành niều đoạn nhỏ.
     var length = 360 / resolution;
     for (let i = 0; i <= resolution; i++) {
+        //Tính toán góc của mỗi đoạn theo radian
         var segment = (i * length) * Math.PI / 180;
+        // hêm điểm mới vào mảng points với các tọa độ x, y, z. Ở đây, y luôn bằng 0 vì quỹ đạo nằm trên mặt phẳng xz.
         points.push(new THREE.Vector3(Math.cos(segment) * distanceFromParent, 0, Math.sin(segment) * distanceFromParent));
     }
     orbitGeometry.setFromPoints(points);
@@ -284,13 +310,13 @@ function displayDetails(data) {
     const modalSatellites = document.getElementById('modal-num_satellites');
 
     modalTitle.textContent = data.name;
-    modalRadius.textContent = `Radius: ${data.radius} km`;
-    modalDistance.textContent = `Distance from Sun: ${data.distance} million km`;
-    modalOrbitDuration.textContent = `Orbit Duration: ${data.orbitDuration} days`;
-    modalRotationDuration.textContent = `Rotation Duration: ${data.rotationDuration} days`;
-    modalOrbitInclination.textContent = `Orbit Inclination: ${data.orbitInclination} degrees`;
-    modalSurfaceTemperature.textContent = `Surface Temperature: ${data.surfaceTemperature} °C`;
-    modalSatellites.textContent = `Satellites: ${data.num_satellites}`;
+    modalRadius.textContent = `Bán kính: ${data.radius} km`;
+    modalDistance.textContent = `Khoảng cách từ Mặt Trời: ${data.distance} triệu km`;
+    modalOrbitDuration.textContent = `Thời gian quỹ đạo: ${data.orbitDuration} ngày`;
+    modalRotationDuration.textContent = `Thời gian quay quanh trục: ${data.rotationDuration} ngày`;
+    modalOrbitInclination.textContent = `Độ nghiêng quỹ đạo so với Trái Đất: ${data.orbitInclination} độ`;
+    modalSurfaceTemperature.textContent = `Nhiệt độ bề mặt: ${data.surfaceTemperature} °C`;
+    modalSatellites.textContent = `Số vệ tinh: ${data.num_satellites}`;
 
     modal.style.display = 'flex';
 
@@ -302,24 +328,67 @@ function displayDetails(data) {
 function showDataPlanet(planet) {
     const planetData = planet.userData;
     displayDetails(planetData);
+    unfocus();
+    playFocusSound(planet.userData.sound);
 }
 
 let focusedPlanet = null;
+let focusAudio = null;
+
+function unfocus() {
+    if (focusAudio) {
+        focusAudio.pause(); // Stop the audio
+        focusAudio.currentTime = 0; // Reset the audio to the start
+        focusAudio = null; // Clear the audio object
+    }
+}
+
+function playFocusSound(sound) {
+    // Check if focusAudio exists and stop it properly
+    if (focusAudio) {
+        focusAudio.pause();
+        focusAudio.currentTime = 0;
+    }
+
+    // Create a new Audio object and assign it to focusAudio
+    focusAudio = new Audio(sound);
+
+    // Ensure the previous audio is fully stopped before starting a new one
+    focusAudio.addEventListener('canplaythrough', () => {
+        focusAudio.loop = true; // Set to loop
+        focusAudio.play().catch((error) => {
+            console.error('Audio playback failed:', error);
+        });
+    });
+
+    // Error handling for playback issues
+    focusAudio.addEventListener('error', (event) => {
+        console.error('Error playing audio:', event);
+    });
+
+    console.log('Playing sound for:', sound);
+}
 
 function focusOnPlanet(planet) {
+
     focusedPlanet = planet;
+    //Tính Toán Khoảng Cách Camera
     const offset = planet.radius * 2;
 
+    //Lấy Vị Trí Toàn Cầu của Hành Tinh
     const worldPosition = new THREE.Vector3();
     planet.getWorldPosition(worldPosition);
 
+    //Tính Toán Vị Trí Mới của Camera
     const newPos = new THREE.Vector3().copy(worldPosition).add(new THREE.Vector3(-offset, offset, -offset));
 
+    //Tạo Một Tween để Di Chuyển Camera đến Vị Trí Mới
     new TWEEN.Tween(camera.position)
         .to(newPos, 0)
         .easing(TWEEN.Easing.Quadratic.Out)
         .start();
 
+    // Tạo Một Tween để Di Chuyển Target đến Vị Trí Mới
     new TWEEN.Tween(controls.target)
         .to(worldPosition, 0)
         .easing(TWEEN.Easing.Quadratic.Out)
@@ -329,6 +398,9 @@ function focusOnPlanet(planet) {
 }
 
 function focusOnSun() {
+    unfocus();
+    playFocusSound('./sounds/Sun.mp3');
+
     focusedPlanet = sun;
     const sunData = sun.userData;
     new TWEEN.Tween(camera.position)
@@ -346,6 +418,8 @@ function focusOnSun() {
 }
 
 function viewSolar() {   
+    unfocus();
+
     focusedPlanet = null 
     new TWEEN.Tween(camera.position)
         .to({ x: 0, y: 400, z: 250 }, 4000)
@@ -401,14 +475,13 @@ var intensity = 1.5;
 var speed = 1;
 var sunLight;
 
-// Update animations
+//moving the planets around the sun on their orbits.
 function animation(orbit, planet) {
     const adjustedOrbitSpeed = 0.001 * (365.25 / planet.userData.orbitDuration) * speed;
     const adjustedRotateSpeed = 0.1 * (24 / planet.userData.rotationDuration) * speed;
 
     orbit.rotation.y += adjustedOrbitSpeed;
     planet.rotation.y += adjustedRotateSpeed;
-
 }
 
 function update(renderer, scene, camera, controls) {
@@ -633,9 +706,11 @@ solar_system.add(orbitSaturn);
 solar_system.add(orbitUranus);
 solar_system.add(orbitNeptune);
 
-getDirectionalLights();
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.07);
+scene.add(ambientLight);
 
 scene.add(solar_system);
+
 
 const planetList = document.getElementById('planet-list');
 
